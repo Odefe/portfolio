@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>blood pressure reddit code | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>blood pressure reddit code</h1><a class="button button-primary" href="reddit-blood-pressure-reddit-blood-pressure-reddit-code.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import praw
+import time
+import json
+import os
+import pandas as pd
+
+subreddits = [
+    &quot;HypertensionAdvocacy&quot;,
+    &quot;hypertension&quot;,
+    &quot;PulmonaryHypertension&quot;,
+    &quot;bloodpressure&quot;,
+    &quot;highbloodpressure&quot;,
+    &quot;HighBloodPressureInfo&quot;
+]
+
+reddit = praw.Reddit(
+    client_id=&quot;YOUR_CLIENT_ID&quot;,
+    client_secret=&quot;YOUR_CLIENT_SECRET&quot;,
+    user_agent=&quot;YOUR_USER_AGENT&quot;
+)
+
+checkpoint_file = &quot;checkpoint.json&quot;
+excel_file = r&quot;C:\Users\Desktop\Blood Pressure Reddit\blood_pressure_reddit_transformed.xlsx&quot;
+URL_LIMIT = 2079
+
+def load_checkpoint():
+    if os.path.exists(checkpoint_file):
+        with open(checkpoint_file, &quot;r&quot;) as f:
+            return json.load(f)
+    return {}
+
+def save_checkpoint(cp):
+    with open(checkpoint_file, &quot;w&quot;) as f:
+        json.dump(cp, f)
+
+checkpoint = load_checkpoint()
+all_data = {}
+
+for sub in subreddits:
+    rows = []
+    last_scraped = checkpoint.get(sub, 0)
+    subreddit_obj = reddit.subreddit(sub)
+    for submission in subreddit_obj.new(limit=None):
+        if submission.created_utc &lt;= last_scraped:
+            continue
+        # Build post text and check length
+        post_text = f&quot;{submission.title}\n{submission.selftext}&quot;
+        if len(post_text) &gt; URL_LIMIT:
+            print(&quot;One post was excluded because it reached Excel&#x27;s URL limit.&quot;)
+        else:
+            rows.append({&quot;type&quot;: &quot;post&quot;, &quot;text&quot;: post_text})
+        submission.comments.replace_more(limit=0)
+        for comment in submission.comments.list():
+            comment_text = comment.body
+            if len(comment_text) &gt; URL_LIMIT:
+                print(&quot;One comment was excluded because it reached Excel&#x27;s URL limit.&quot;)
+            else:
+                rows.append({&quot;type&quot;: &quot;comment&quot;, &quot;text&quot;: comment_text})
+        checkpoint[sub] = submission.created_utc
+        save_checkpoint(checkpoint)
+        time.sleep(2)
+    all_data[sub] = rows
+
+with pd.ExcelWriter(excel_file) as writer:
+    for sub, rows in all_data.items():
+        df = pd.DataFrame(rows)
+        df.to_excel(writer, sheet_name=sub[:31], index=False)
+</code></pre></main></body></html>

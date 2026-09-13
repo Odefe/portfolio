@@ -1,0 +1,90 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>reddit again | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>reddit again</h1><a class="button button-primary" href="reddit-weak-moderated-subreddits-reddit-again.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import praw
+import pandas as pd
+from datetime import datetime
+
+# Replace the following strings with your own Reddit API credentials
+CLIENT_ID = &#x27;YOUR_REDDIT_CREDENTIAL&#x27;
+CLIENT_SECRET = &#x27;YOUR_REDDIT_CREDENTIAL&#x27;
+USER_AGENT = &#x27;hh&#x27;  # e.g., &#x27;myredditapp by /u/yourusername&#x27;
+
+# Initialize the Reddit instance
+reddit = praw.Reddit(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    user_agent=USER_AGENT
+)
+
+# Subreddits to scrape
+subreddits = [&#x27;collections&#x27;, &#x27;NFT&#x27;]
+
+# Number of posts to retrieve from each subreddit
+NUM_POSTS = 15
+
+# List to hold all data
+all_posts_data = []
+
+for subreddit_name in subreddits:
+    print(f&quot;Scraping subreddit: r/{subreddit_name}&quot;)
+    subreddit = reddit.subreddit(subreddit_name)
+    
+    # Fetch the top NUM_POSTS hot posts
+    posts = subreddit.hot(limit=NUM_POSTS)
+    
+    for post in posts:
+        post_data = {
+            &#x27;Subreddit&#x27;: subreddit_name,
+            &#x27;Post ID&#x27;: post.id,
+            &#x27;Title&#x27;: post.title,
+            &#x27;Author&#x27;: str(post.author),
+            &#x27;Date&#x27;: datetime.fromtimestamp(post.created_utc),
+            &#x27;Upvotes&#x27;: post.score,
+            &#x27;URL&#x27;: post.url,
+            &#x27;Content&#x27;: post.selftext,
+            &#x27;Number of Comments&#x27;: post.num_comments
+        }
+        
+        # Fetch comments
+        post.comments.replace_more(limit=0)
+        comments = post.comments.list()
+        
+        comments_data = []
+        for comment in comments:
+            comment_data = {
+                &#x27;Comment ID&#x27;: comment.id,
+                &#x27;Parent ID&#x27;: comment.parent_id,
+                &#x27;Comment Author&#x27;: str(comment.author),
+                &#x27;Comment Date&#x27;: datetime.fromtimestamp(comment.created_utc),
+                &#x27;Comment Upvotes&#x27;: comment.score,
+                &#x27;Comment Body&#x27;: comment.body
+            }
+            comments_data.append(comment_data)
+        
+        post_data[&#x27;Comments&#x27;] = comments_data
+        all_posts_data.append(post_data)
+
+# Convert the data into a DataFrame
+posts_df = pd.DataFrame(all_posts_data)
+
+# Expand the comments into a separate DataFrame
+comments_list = []
+for post in all_posts_data:
+    for comment in post[&#x27;Comments&#x27;]:
+        comment[&#x27;Post ID&#x27;] = post[&#x27;Post ID&#x27;]
+        comment[&#x27;Subreddit&#x27;] = post[&#x27;Subreddit&#x27;]
+        comments_list.append(comment)
+
+comments_df = pd.DataFrame(comments_list)
+
+# Remove the &#x27;Comments&#x27; column from posts_df as it&#x27;s now in comments_df
+posts_df = posts_df.drop(&#x27;Comments&#x27;, axis=1)
+
+# Correct the file path string
+excel_file_path = r&#x27;C:\Users\ceofl\Desktop\redditsample.xlsx&#x27;  # Use a raw string
+
+# Write the DataFrames to an Excel file with multiple sheets
+with pd.ExcelWriter(excel_file_path) as writer:
+    posts_df.to_excel(writer, sheet_name=&#x27;Posts&#x27;, index=False)
+    comments_df.to_excel(writer, sheet_name=&#x27;Comments&#x27;, index=False)
+
+print(f&quot;Data has been successfully saved to &#x27;{excel_file_path}&#x27;.&quot;)
+</code></pre></main></body></html>

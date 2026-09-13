@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Reviews | Emmanuel Oberabor</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/expansion.css">
+
+<style>
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.reviews-hero {
+  display: flex;
+  align-items: center;
+  min-height: auto;
+}
+
+.reviews-hero-inner {
+  width: 100%;
+  padding-top: 28px;
+  padding-bottom: 10px;
+}
+
+.reviews-hero .eyebrow {
+  margin: 0 0 12px;
+}
+
+.reviews-hero h1 {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(48px, 5.8vw, 82px);
+  font-weight: 400;
+  line-height: .95;
+  letter-spacing: -.04em;
+  margin: 0;
+  max-width: 900px;
+}
+
+.reviews-hero-copy {
+  max-width: 610px;
+  margin: 18px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.65;
+  opacity: .68;
+}
+
+.reviews-scroll {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  opacity: .4;
+}
+
+.scroll-arrow {
+  display: inline-flex;
+  animation: arrowBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(6px);
+  }
+
+}
+
+.review-showcase {
+  width: min(1250px, calc(100% - 50px));
+  margin: -10px auto 0;
+  padding: 18px 0 80px;
+  position: relative;
+}
+
+.review-stage {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+  align-items: start;
+  perspective: 1400px;
+}
+
+.review-slot {
+  width: 100%;
+  min-height: 350px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: visible;
+}
+
+.review-image {
+  display: block;
+  max-width: 100%;
+  max-height: 520px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  opacity: 0;
+  border-radius: 18px;
+  box-shadow:
+    0 28px 75px rgba(0, 0, 0, .13),
+    0 8px 24px rgba(0, 0, 0, .06);
+  will-change: transform, opacity;
+  cursor: pointer;
+}
+
+.review-image:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+}
+
+.review-showcase.paused .review-image,
+.review-showcase.paused .review-progress-bar {
+  animation-play-state: paused !important;
+}
+
+.review-image.left {
+  transform: translate(-120px, 120px) scale(.65) rotate(-5deg);
+}
+
+.review-image.right {
+  transform: translate(120px, 120px) scale(.65) rotate(5deg);
+}
+
+.review-image.left.bounce-in {
+  animation: bounceInLeft .9s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+.review-image.right.bounce-in {
+  animation: bounceInRight .9s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+.review-image.left.bounce-out {
+  animation: bounceOutLeft .7s cubic-bezier(.7, 0, .84, 0) forwards;
+}
+
+.review-image.right.bounce-out {
+  animation: bounceOutRight .7s cubic-bezier(.7, 0, .84, 0) forwards;
+}
+
+@keyframes bounceInLeft {
+
+  0% {
+    opacity: 0;
+    transform: translate(-120px, 120px) scale(.65) rotate(-5deg);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translate(16px, -24px) scale(1.05) rotate(1.5deg);
+  }
+
+  67% {
+    transform: translate(-8px, 11px) scale(.98) rotate(-.5deg);
+  }
+
+  84% {
+    transform: translate(3px, -5px) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0);
+  }
+
+}
+
+@keyframes bounceInRight {
+
+  0% {
+    opacity: 0;
+    transform: translate(120px, 120px) scale(.65) rotate(5deg);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translate(-16px, -24px) scale(1.05) rotate(-1.5deg);
+  }
+
+  67% {
+    transform: translate(8px, 11px) scale(.98) rotate(.5deg);
+  }
+
+  84% {
+    transform: translate(-3px, -5px) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0);
+  }
+
+}
+
+@keyframes bounceOutLeft {
+
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(0, -20px) scale(1.025);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-130px, 120px) scale(.6) rotate(-6deg);
+  }
+
+}
+
+@keyframes bounceOutRight {
+
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(0, -20px) scale(1.025);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(130px, 120px) scale(.6) rotate(6deg);
+  }
+
+}
+
+.review-controls {
+  width: min(500px, 70%);
+  margin: 30px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.review-progress {
+  flex: 1;
+  height: 2px;
+  background: rgba(0, 0, 0, .08);
+  overflow: hidden;
+}
+
+.review-toggle {
+  min-width: 64px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, .16);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.review-toggle:hover {
+  background: rgba(0, 0, 0, .05);
+}
+
+.review-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.review-progress-bar {
+  width: 0;
+  height: 100%;
+  background: currentColor;
+}
+
+.review-progress-bar.active {
+  animation: reviewProgress 5s linear forwards;
+}
+
+@keyframes reviewProgress {
+
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 950px) {
+
+  .reviews-hero h1 {
+    font-size: clamp(46px, 8vw, 70px);
+  }
+
+  .review-stage {
+    gap: 18px;
+  }
+
+  .review-slot {
+    min-height: 300px;
+  }
+
+  .review-image {
+    max-height: 430px;
+    border-radius: 15px;
+  }
+
+}
+
+@media (max-width: 650px) {
+
+  .reviews-hero-inner {
+    padding-top: 22px;
+    padding-bottom: 10px;
+  }
+
+  .reviews-hero h1 {
+    font-size: clamp(42px, 13vw, 58px);
+  }
+
+  .reviews-hero-copy {
+    margin-top: 14px;
+    font-size: 14px;
+  }
+
+  .reviews-scroll {
+    margin-top: 14px;
+  }
+
+  .review-showcase {
+    width: calc(100% - 28px);
+    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 60px;
+  }
+
+  .review-stage {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .review-slot {
+    min-height: 0;
+  }
+
+  .review-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+  }
+
+  .review-controls {
+    width: 78%;
+    margin-top: 24px;
+    gap: 10px;
+  }
+
+  .review-toggle {
+    min-height: 40px;
+  }
+
+}
+
+</style>
+
+<script src="assets/portfolio-content.js" defer></script><script src="assets/app.js" defer></script></head>
+
+<body>
+
+<header class="site-header"><div class="container header-inner"><a class="wordmark" href="index.html" aria-label="Portfolio home">Portfolio<span>.</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button><nav id="primary-nav" class="primary-nav" aria-label="Primary navigation"><a href="index.html">Home</a><a href="skills.html">Skills</a><a href="projects.html">Projects</a><a href="reviews.html" aria-current="page">Reviews</a><a href="resume.html">Resumes</a><a href="contact.html">Contact</a></nav></div></header>
+
+<main>
+
+<section class="reviews-hero">
+
+<div class="container reviews-hero-inner">
+
+<p class="eyebrow">Client feedback</p>
+
+<h1>Trusted by Clients</h1>
+
+<p class="reviews-hero-copy">
+Feedback from clients who trusted me to deliver across analytics, reporting, automation, and software.
+</p>
+
+<div class="reviews-scroll">
+<span>See what clients have to say</span>
+<span class="scroll-arrow">↓</span>
+</div>
+
+</div>
+
+</section>
+
+<section class="review-showcase">
+
+<div class="review-stage">
+
+<div class="review-slot">
+<img
+id="reviewImageLeft"
+class="review-image left"
+src=""
+alt="Client feedback"
+tabindex="0"
+role="button"
+aria-label="Pause review slideshow"
+>
+</div>
+
+<div class="review-slot">
+<img
+id="reviewImageRight"
+class="review-image right"
+src=""
+alt="Client feedback"
+tabindex="0"
+role="button"
+aria-label="Pause review slideshow"
+>
+</div>
+
+</div>
+
+<div class="review-controls">
+<div class="review-progress" aria-hidden="true">
+<div class="review-progress-bar" id="progressBar"></div>
+</div>
+<button class="review-toggle" id="reviewToggle" type="button" aria-pressed="false">Pause</button>
+</div>
+
+</section>
+
+</main>
+
+<footer class="site-footer">
+
+<div class="container footer-inner">
+
+<p>
+Emmanuel Oberabor <span>/</span> Data + Software
+</p>
+
+</div>
+
+</footer>
+
+<script>
+
+const reviewShowcase = document.querySelector(".review-showcase")
+const reviewImageLeft = document.getElementById("reviewImageLeft")
+const reviewImageRight = document.getElementById("reviewImageRight")
+const progressBar = document.getElementById("progressBar")
+const reviewToggle = document.getElementById("reviewToggle")
+
+const totalReviews = 53
+const cycleDuration = 5000
+
+let reviewOrder = []
+let currentIndex = 0
+let previousPair = []
+let timers = []
+let paused = false
+let elapsed = 0
+let cycleStartedAt = 0
+let rightEntered = false
+let exitStarted = false
+let rightExitStarted = false
+let preloaded = false
+
+function shuffleReviews() {
+
+  reviewOrder = Array.from(
+    { length: totalReviews },
+    (_, index) => index + 1
+  )
+
+  for (let i = reviewOrder.length - 1; i > 0; i--) {
+
+    const j = Math.floor(Math.random() * (i + 1))
+
+    const current = reviewOrder[i]
+    reviewOrder[i] = reviewOrder[j]
+    reviewOrder[j] = current
+
+  }
+
+  currentIndex = 0
+
+}
+
+function getReviewSource(number) {
+
+  const formattedNumber = String(number).padStart(2, "0")
+  const extension = number <= 12 ? "jpeg" : "png"
+
+  return `assets/images/projects/review-${formattedNumber}.${extension}`
+
+}
+
+function getNextReview() {
+
+  if (currentIndex >= reviewOrder.length) {
+    shuffleReviews()
+  }
+
+  const review = reviewOrder[currentIndex]
+
+  currentIndex++
+
+  return review
+
+}
+
+function getNextPair() {
+
+  let first = getNextReview()
+  let second = getNextReview()
+
+  while (
+    first === second ||
+    previousPair.includes(first) ||
+    previousPair.includes(second)
+  ) {
+
+    first = getNextReview()
+    second = getNextReview()
+
+  }
+
+  previousPair = [first, second]
+
+  return [first, second]
+
+}
+
+function restartProgress() {
+
+  progressBar.classList.remove("active")
+
+  void progressBar.offsetWidth
+
+  progressBar.classList.add("active")
+
+}
+
+function preloadReview(number) {
+
+  const image = new Image()
+
+  image.src = getReviewSource(number)
+
+}
+
+function clearTimers() {
+
+  timers.forEach(timer => clearTimeout(timer))
+  timers = []
+
+}
+
+function scheduleAt(time, action) {
+
+  const remaining = Math.max(0, time - elapsed)
+  const timer = setTimeout(action, remaining)
+
+  timers.push(timer)
+
+}
+
+function scheduleCycle() {
+
+  clearTimers()
+
+  if (!rightEntered) {
+    scheduleAt(150, () => {
+      rightEntered = true
+      reviewImageRight.classList.add("bounce-in")
+    })
+  }
+
+  if (!exitStarted) {
+    scheduleAt(4100, () => {
+      exitStarted = true
+      reviewImageLeft.classList.remove("bounce-in")
+      reviewImageRight.classList.remove("bounce-in")
+      reviewImageLeft.classList.add("bounce-out")
+    })
+  }
+
+  if (!rightExitStarted) {
+    scheduleAt(4220, () => {
+      rightExitStarted = true
+      reviewImageRight.classList.add("bounce-out")
+    })
+  }
+
+  if (!preloaded) {
+    scheduleAt(4300, () => {
+      preloaded = true
+
+      const upcomingOne = reviewOrder[currentIndex]
+      const upcomingTwo = reviewOrder[currentIndex + 1]
+
+      if (upcomingOne) {
+        preloadReview(upcomingOne)
+      }
+
+      if (upcomingTwo) {
+        preloadReview(upcomingTwo)
+      }
+    })
+  }
+
+  scheduleAt(cycleDuration, showReviews)
+
+}
+
+function showReviews() {
+
+  clearTimers()
+
+  const pair = getNextPair()
+
+  const leftReview = pair[0]
+  const rightReview = pair[1]
+
+  elapsed = 0
+  cycleStartedAt = performance.now()
+  rightEntered = false
+  exitStarted = false
+  rightExitStarted = false
+  preloaded = false
+
+  reviewImageLeft.classList.remove("bounce-in", "bounce-out")
+  reviewImageRight.classList.remove("bounce-in", "bounce-out")
+
+  reviewImageLeft.src = getReviewSource(leftReview)
+  reviewImageRight.src = getReviewSource(rightReview)
+
+  reviewImageLeft.alt = "Client feedback"
+  reviewImageRight.alt = "Client feedback"
+
+  void reviewImageLeft.offsetWidth
+  void reviewImageRight.offsetWidth
+
+  reviewImageLeft.classList.add("bounce-in")
+
+  restartProgress()
+  scheduleCycle()
+
+}
+
+function updateToggleState() {
+
+  const label = paused ? "Play" : "Pause"
+  const imageLabel = paused ? "Resume review slideshow" : "Pause review slideshow"
+
+  reviewToggle.textContent = label
+  reviewToggle.setAttribute("aria-pressed", String(paused))
+  reviewImageLeft.setAttribute("aria-label", imageLabel)
+  reviewImageRight.setAttribute("aria-label", imageLabel)
+
+}
+
+function pauseReviews() {
+
+  if (paused) {
+    return
+  }
+
+  elapsed = Math.min(cycleDuration, elapsed + performance.now() - cycleStartedAt)
+  paused = true
+  clearTimers()
+  reviewShowcase.classList.add("paused")
+  updateToggleState()
+
+}
+
+function resumeReviews() {
+
+  if (!paused) {
+    return
+  }
+
+  paused = false
+  cycleStartedAt = performance.now()
+  reviewShowcase.classList.remove("paused")
+  updateToggleState()
+  scheduleCycle()
+
+}
+
+function toggleReviews() {
+
+  if (paused) {
+    resumeReviews()
+  } else {
+    pauseReviews()
+  }
+
+}
+
+function handleImageKeydown(event) {
+
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault()
+    toggleReviews()
+  }
+
+}
+
+reviewToggle.addEventListener("click", toggleReviews)
+reviewImageLeft.addEventListener("click", toggleReviews)
+reviewImageRight.addEventListener("click", toggleReviews)
+reviewImageLeft.addEventListener("keydown", handleImageKeydown)
+reviewImageRight.addEventListener("keydown", handleImageKeydown)
+
+shuffleReviews()
+
+preloadReview(reviewOrder[0])
+preloadReview(reviewOrder[1])
+
+showReviews()
+
+</script>
+
+</body>
+
+</html>

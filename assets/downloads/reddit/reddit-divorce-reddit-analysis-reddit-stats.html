@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>reddit stats | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>reddit stats</h1><a class="button button-primary" href="reddit-divorce-reddit-analysis-reddit-stats.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import pandas as pd
+
+# Load your dataset
+file_path = r&quot;C:\Users\ceofl\Desktop\divorce_reddit_posts.xlsx&quot;
+df = pd.read_excel(file_path, sheet_name=&#x27;Combined&#x27;)
+
+# Make sure numeric columns are numeric and fill missing values with 0
+df[&#x27;upvotes&#x27;] = pd.to_numeric(df[&#x27;upvotes&#x27;], errors=&#x27;coerce&#x27;).fillna(0)
+df[&#x27;comments&#x27;] = pd.to_numeric(df[&#x27;comments&#x27;], errors=&#x27;coerce&#x27;).fillna(0)
+
+# Group by subreddit and source (post/comment)
+stats = df.groupby([&#x27;subreddit&#x27;, &#x27;source&#x27;]).agg({
+    &#x27;post_id&#x27;: &#x27;nunique&#x27;,
+    &#x27;upvotes&#x27;: &#x27;sum&#x27;,
+    &#x27;comments&#x27;: &#x27;sum&#x27;
+}).reset_index()
+
+# Pivot so posts and comments line up side by side
+stats_pivot = stats.pivot(index=&#x27;subreddit&#x27;, columns=&#x27;source&#x27;)
+stats_pivot = stats_pivot.fillna(0)  # fill any missing with 0
+
+# Rename columns for clarity
+stats_pivot.columns = [f&quot;{col[0]}_{col[1]}&quot; for col in stats_pivot.columns]
+stats_pivot = stats_pivot.reset_index()
+
+# Sort by subreddit
+stats_pivot = stats_pivot.sort_values(&#x27;subreddit&#x27;)
+
+# Calculate overall totals
+total_posts = df[df[&#x27;source&#x27;] == &#x27;post&#x27;][&#x27;post_id&#x27;].nunique()
+total_comments = df[df[&#x27;source&#x27;] == &#x27;comment&#x27;].shape[0]
+total_upvotes = df[&#x27;upvotes&#x27;].sum()
+# Only posts have &quot;comments&quot; values
+total_post_comments = df[df[&#x27;source&#x27;] == &#x27;post&#x27;][&#x27;comments&#x27;].sum()
+
+print(&quot;Statistics by Subreddit (Posts vs. Comments):&quot;)
+print(stats_pivot.to_string(index=False))
+
+print(&quot;\nOverall Totals:&quot;)
+print(f&quot;Total Unique Posts: {total_posts}&quot;)
+print(f&quot;Total Comment Rows: {total_comments}&quot;)
+print(f&quot;Sum of Upvotes (Posts + Comments): {total_upvotes}&quot;)
+print(f&quot;Sum of &#x27;Comments&#x27; (only on Posts): {total_post_comments}&quot;)
+
+# Optionally save to Excel
+output_stats = r&quot;C:\Users\ceofl\Desktop\divorce_reddit_stats.xlsx&quot;
+with pd.ExcelWriter(output_stats) as writer:
+    stats_pivot.to_excel(writer, sheet_name=&#x27;Stats&#x27;, index=False)
+
+print(f&quot;\nStatistics saved to {output_stats}&quot;)
+</code></pre></main></body></html>

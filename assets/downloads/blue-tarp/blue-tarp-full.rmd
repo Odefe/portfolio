@@ -1,0 +1,198 @@
+title: "Blue Tarp Detection — Complete Pipeline"
+output:
+  html_document: default
+  word_document: default
+
+```{r setup, include=FALSE}
+# load everything
+library(tidyverse)
+library(tidymodels)
+library(discrim)
+library(ranger)
+library(vip)
+set.seed(42)
+
+# file inputs
+train_csv   <- "HaitiPixels.csv"
+holdout_dir <- "ROI_files"    # your folder of ROI_*.txt files
+
+# load & label
+df <- read_csv(train_csv, show_col_types=FALSE) %>%
+  mutate(
+    target = if_else(
+      str_detect(tolower(Class),"blue") & str_detect(tolower(Class),"tarp"),
+      "tarp","other"
+    )
+  ) %>%
+  select(target, Red, Green, Blue) %>%
+  drop_na() %>%
+  mutate(target=factor(target, levels=c("tarp","other")))
+
+# class counts
+count(df, target, name="n") %>% write_csv("class_counts.csv")
+
+# per-band summary
+df %>%
+  group_by(target) %>%
+  summarise(
+    Red_mean   = mean(Red),   Red_sd   = sd(Red),
+    Green_mean = mean(Green), Green_sd = sd(Green),
+    Blue_mean  = mean(Blue),  Blue_sd  = sd(Blue),
+    .groups="drop"
+  ) %>%
+  write_csv("band_summary.csv")
+
+# histograms
+p1 <- df %>%
+  pivot_longer(c(Red,Green,Blue), names_to="band", values_to="value") %>%
+  ggplot(aes(value, fill=target)) +
+    geom_histogram(alpha=0.5, position="identity", bins=30) +
+    facet_wrap(~band, scales="free_x") +
+    labs(title="RGB Distributions by Class", x="DN", y="Count") +
+    theme_minimal()
+ggsave("band_histograms.png", p1, width=8, height=5)
+
+# recipe + folds
+rec   <- recipe(target~Red+Green+Blue, data=df) %>% step_normalize(all_predictors())
+folds <- vfold_cv(df, v=5, strata=target)
+
+# model specs
+specs <- list(
+  log  = logistic_reg() %>% set_engine("glm")    %>% set_mode("classification"),
+  lda  = discrim_linear() %>% set_engine("MASS") %>% set_mode("classification"),
+  qda  = discrim_quad()   %>% set_engine("MASS") %>% set_mode("classification"),
+  knn  = nearest_neighbor(neighbors=tune()) %>% set_engine("kknn") %>% set_mode("classification"),
+  enet = logistic_reg(penalty=tune(), mixture=tune()) %>% set_engine("glmnet") %>% set_mode("classification"),
+  rf   = rand_forest(trees=500) %>% set_engine("ranger") %>% set_mode("classification")
+)
+
+# workflows
+wfs <- map(specs, ~ workflow() %>% add_recipe(rec) %>% add_model(.x))
+
+# resample / tune
+res <- list(
+  log  = fit_resamples(wfs$log,  folds, metrics=metric_set(roc_auc,pr_auc), control=control_resamples(save_pred=TRUE)),
+  lda  = fit_resamples(wfs$lda,  folds, metrics=metric_set(roc_auc,pr_auc), control=control_resamples(save_pred=TRUE)),
+  qda  = fit_resamples(wfs$qda,  folds, metrics=metric_set(roc_auc,pr_auc), control=control_resamples(save_pred=TRUE)),
+  knn  = tune_grid   (wfs$knn, folds, grid=grid_regular(neighbors(range=c(5,15)),levels=3), metrics=metric_set(roc_auc,pr_auc), control=control_grid(save_pred=TRUE)),
+  enet = tune_grid   (wfs$enet,folds, grid=grid_regular(penalty(),mixture(),levels=3),      metrics=metric_set(roc_auc,pr_auc), control=control_grid(save_pred=TRUE)),
+  rf   = fit_resamples(wfs$rf,   folds, metrics=metric_set(roc_auc,pr_auc), control=control_resamples(save_pred=TRUE))
+)
+
+# collect & save
+map2_dfr(res, names(res), ~collect_metrics(.x) %>% mutate(model=.y)) %>%
+  filter(.metric %in% c("roc_auc","pr_auc")) %>%
+  select(model,.metric,mean,std_err) %>%
+  write_csv("cv_metrics.csv")
+
+# pick best by ROC AUC
+cv_sum <- read_csv("cv_metrics.csv")
+best_model <- cv_sum %>%
+  filter(.metric=="roc_auc") %>%
+  slice_max(mean) %>%
+  pull(model)
+
+# finalize workflow
+wf_best <- wfs[[best_model]]
+if(best_model %in% c("knn","enet")) {
+  best_par <- select_best(res[[best_model]], "roc_auc")
+  wf_best <- finalize_workflow(wf_best, best_par)
+}
+
+# splits
+split1   <- initial_split(df, prop=0.8, strata=target)
+train    <- training(split1); test <- testing(split1)
+split2   <- initial_split(train, prop=0.75, strata=target)
+subtrain <- training(split2); valid <- testing(split2)
+
+# fit & get validation probs
+fit_best <- fit(wf_best, subtrain)
+val_pred <- predict(fit_best, valid, type="prob") %>% bind_cols(valid)
+
+# scan F1
+ths <- seq(0,1,by=0.01)
+f1s <- sapply(ths, function(t)
+  yardstick::f_meas_vec(
+    truth=factor(val_pred$target,levels=c("tarp","other")),
+    estimate=factor(ifelse(val_pred$.pred_tarp>=t,"tarp","other"),levels=c("tarp","other")),
+    event_level="first"
+  )
+)
+validation_f1 <- tibble(threshold=ths, f1=f1s)
+write_csv(validation_f1, "validation_f1_by_threshold.csv")
+
+p_f1 <- ggplot(validation_f1, aes(threshold,f1)) +
+  geom_line(linewidth=1) +
+  geom_vline(xintercept=ths[which.max(f1s)], linetype="dashed", color="red") +
+  labs(title="F₁ vs Threshold", x="Threshold", y="F₁") +
+  theme_minimal()
+ggsave("f1_threshold.png", p_f1, width=6, height=4)
+
+best_th <- ths[which.max(f1s)]
+cat("Chosen threshold:", best_th, "\n")
+
+test_pred <- predict(fit_best, test, type="prob") %>% bind_cols(test) %>%
+  mutate(.pred_class=factor(if_else(.pred_tarp>=best_th,"tarp","other"),levels=c("tarp","other")))
+
+# metrics table
+metric_set(roc_auc,pr_auc,accuracy,precision,recall,f_meas)(
+  test_pred, truth=target, estimate=.pred_class, .pred_tarp, event_level="first"
+) %>% write_csv("test_metrics.csv")
+
+# curves + CM
+rc  <- roc_curve(test_pred, truth=target, .pred_tarp, event_level="first")
+pr  <- pr_curve (test_pred, truth=target, .pred_tarp, event_level="first")
+cm  <- conf_mat(test_pred, truth=target, estimate=.pred_class)
+
+ggsave("roc.png",  autoplot(rc) + theme_minimal(), width=6, height=4)
+ggsave("pr.png",   autoplot(pr) + theme_minimal(), width=6, height=4)
+ggsave("confusion_matrix.png",
+       autoplot(cm, type="heatmap") + theme_minimal(),
+       width=4, height=4)
+
+# reader fn
+read_roi <- function(path, lab){
+  hdr <- readLines(path, n=200)
+  idx <- which(grepl("^;\\s*ID\\s+X", hdr))[1]
+  x <- read_table(path,
+           skip = ifelse(is.na(idx),0,idx),
+           comment="", col_names=c("ID","X","Y","MapX","MapY","Lat","Lon","B1","B2","B3"),
+           col_types=cols(.default="d"))
+  transmute(x, Red=B1,Green=B2,Blue=B3,target=lab,file=basename(path))
+}
+
+# load & bind
+pos <- list.files(holdout_dir,"ROI_Blue_Tarps\\.txt$",full.names=TRUE,ignore.case=TRUE)
+neg <- list.files(holdout_dir,"ROI_(NOT|NON)_Blue_Tarps\\.txt$",full.names=TRUE,ignore.case=TRUE)
+hold <- bind_rows(
+  if(length(pos)) map_dfr(pos, ~read_roi(.x,"tarp")) else tibble(),
+  if(length(neg)) map_dfr(neg, ~read_roi(.x,"other")) else tibble()
+) %>% drop_na()
+
+# predict & metrics
+pred_hold <- predict(fit_best, hold, type="prob") %>%
+  bind_cols(hold) %>%
+  mutate(target=factor(target,levels=c("tarp","other")),
+         .pred_class=factor(if_else(.pred_tarp>=best_th,"tarp","other"),levels=c("tarp","other")))
+
+metric_set(roc_auc,pr_auc,accuracy,precision,recall,f_meas)(
+  pred_hold, truth=target, estimate=.pred_class, .pred_tarp, event_level="first"
+) %>% write_csv("holdout_metrics.csv")
+
+# per-image rates
+pred_hold %>%
+  group_by(file) %>%
+  summarise(pixels=n(), tarp=sum(.pred_class=="tarp"), tarp_rate=tarp/pixels, .groups="drop") %>%
+  arrange(desc(tarp_rate)) %>%
+  write_csv("holdout_per_image.csv")
+
+# re-fit RF on subtrain with importance
+rf_obj <- ranger(target~Red+Green+Blue,
+                 data=training(split2),
+                 num.trees=500,
+                 importance="impurity",
+                 probability=TRUE)
+p_vip <- vip(rf_obj) +
+  labs(title="RF Variable Importance") +
+  theme_minimal()
+ggsave("vip.png", p_vip, width=6, height=4)

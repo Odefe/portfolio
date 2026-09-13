@@ -1,0 +1,204 @@
+/* These overrides belong to the skills page; other portfolio pages keep their layout. */
+.skills-page .page-intro {
+  padding-top: 64px;
+  padding-bottom: 28px;
+}
+
+/* Remove the shared 780px heading cap so the title uses the full container.
+   Fluid sizing keeps a single line on wide screens and natural wrapping on smaller ones. */
+.skills-page .page-intro .skills-title {
+  width: 100%;
+  max-width: none;
+  font-size: clamp(2.3rem, 5.4vw, 4.55rem);
+  letter-spacing: -0.06em;
+  line-height: 1.08;
+}
+
+.skills-page .skill-jump {
+  gap: 8px;
+  padding-bottom: 30px;
+}
+
+.skills-page .skill-jump a {
+  padding: 8px 11px;
+  border-radius: 4px;
+}
+
+.skills-page .skill-jump a:active {
+  background: var(--blue-dark);
+  color: #fff;
+}
+
+.skills-page .skills-directory {
+  gap: 26px;
+}
+
+.skills-page .skill-category {
+  padding: 27px;
+  scroll-margin-top: 94px;
+}
+
+.skills-page .skill-category-featured {
+  border-top: 3px solid var(--blue);
+}
+
+/* A category number and one descriptive heading replace the old label/slogan pair. */
+.skills-page .skill-category-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+}
+
+.skills-page .skill-index {
+  color: #a74724;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.skills-page .skill-category-head h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(1.25rem, 2.3vw, 1.7rem);
+  letter-spacing: -0.045em;
+  line-height: 1.18;
+}
+
+.skills-page .skill-logo-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.skills-page .skill-logo-grid article {
+  display: grid;
+  grid-template-columns: 39px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: 12px;
+  row-gap: 13px;
+  align-items: center;
+  min-width: 0;
+  min-height: 150px;
+  padding: 18px;
+}
+
+.skills-page .tool-mark {
+  position: relative;
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: -0.025em;
+}
+
+/* Existing logo images sit over readable abbreviations.
+   If a vendor CDN image fails, its onerror handler reveals the abbreviation. */
+.skills-page .tool-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border-radius: inherit;
+  background: inherit;
+  object-fit: contain;
+}
+
+.skills-page .tool-mark.mark-blue { background: #2457be; }
+.skills-page .tool-mark.mark-navy { background: #10233f; }
+.skills-page .tool-mark.mark-forest { background: #225b3b; }
+.skills-page .tool-mark.mark-teal { background: #256966; }
+.skills-page .tool-mark.mark-rust { background: #a74724; }
+
+.skills-page .skill-logo-grid h3 {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.skills-page .skill-logo-grid p {
+  grid-column: 1 / -1;
+  align-self: start;
+  margin: 0;
+  color: #536074;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.skills-page .skills-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.skills-page .skills-actions .button {
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .skills-page .skill-logo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .skills-page .page-intro {
+    padding-top: 44px;
+    padding-bottom: 24px;
+  }
+
+  .skills-page .page-intro .skills-title {
+    font-size: clamp(2.3rem, 7vw, 3.4rem);
+    line-height: 1.08;
+  }
+
+  .skills-page .skill-category {
+    padding: 22px;
+    scroll-margin-top: 82px;
+  }
+
+  .skills-page .skill-category-head {
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .skills-page .skill-category-head h2 {
+    flex: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .skills-page .skill-logo-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .skills-page .skill-logo-grid article {
+    min-height: 0;
+    padding: 16px;
+    row-gap: 11px;
+  }
+
+  .skills-page .skill-jump {
+    gap: 7px;
+    padding-bottom: 24px;
+  }
+
+  .skills-page .skill-jump a {
+    padding: 8px 9px;
+    font-size: 0.7rem;
+  }
+
+  .skills-page .skill-category {
+    padding: 20px 16px;
+  }
+
+  .skills-page .skill-logo-grid h3 {
+    font-size: 1rem;
+  }
+
+  .skills-page .skill-logo-grid p {
+    font-size: 0.84rem;
+  }
+}

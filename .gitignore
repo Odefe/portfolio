@@ -1,0 +1,11 @@
+# Local development files are not part of the published portfolio.
+tools/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.env
+.env.*
+preview-*.png
+skills-desktop.png
+skills-mobile.png

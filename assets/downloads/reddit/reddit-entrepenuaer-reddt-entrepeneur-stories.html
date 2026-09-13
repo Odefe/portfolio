@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>entrepeneur stories | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>entrepeneur stories</h1><a class="button button-primary" href="reddit-entrepenuaer-reddt-entrepeneur-stories.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import praw
+import csv
+import time
+from datetime import datetime
+
+def main():
+    reddit = praw.Reddit(
+    client_id=&quot;YOUR_REDDIT_CREDENTIAL&quot;,
+    client_secret=&quot;YOUR_REDDIT_CREDENTIAL&quot;,
+    user_agent=&quot;gg&quot;)
+
+
+    subs = [
+        &#x27;entrepreneur&#x27;,
+        &#x27;smallbusiness&#x27;,
+        &#x27;startups&#x27;,
+        &#x27;PTSD&#x27;,
+        &#x27;CPTSD&#x27;,
+        &#x27;therapy&#x27;,
+        &#x27;mentalhealth&#x27;
+    ]
+
+    search_phrases = [
+        &quot;entrepreneurship helped me recover&quot;,
+        &quot;starting my business saved me&quot;,
+        &quot;entrepreneurship as therapy&quot;,
+        &quot;being an entrepreneur helped my mental health&quot;,
+        &quot;entrepreneurship helped me heal&quot;,
+        &quot;starting a business after burnout&quot;,
+        &quot;I healed through my startup&quot;,
+        &quot;healing through entrepreneurship&quot;,
+        &quot;entrepreneurship was my therapy&quot;,
+        &quot;building my company helped me heal&quot;,
+        &quot;my business helped me recover&quot;,
+        &quot;startup saved my life&quot;,
+        &quot;launching my business saved me&quot;,
+        &quot;founder journey as healing&quot;,
+        &quot;business gave me purpose&quot;,
+        &quot;small business helped me cope&quot;,
+        &quot;business kept me afloat&quot;,
+        &quot;work helped me overcome trauma&quot;,
+        &quot;building helped me manage PTSD&quot;,
+        &quot;recovering after business failure&quot;,
+        &quot;bouncing back from failure&quot;,
+        &quot;failed startup recovery&quot;,
+        &quot;startup failure taught me&quot;,
+        &quot;life after closing business&quot;,
+        &quot;recover from business burnout&quot;,
+        &quot;burnout recovery through work&quot;,
+        &quot;being a founder helped me cope&quot;,
+        &quot;business as therapy&quot;,
+        &quot;coping with trauma by building a startup&quot;,
+        &quot;trauma healing through business&quot;
+    ]
+
+    records = []
+
+    for sub in subs:
+        subreddit = reddit.subreddit(sub)
+        for phrase in search_phrases:
+            query = f&#x27;&quot;{phrase}&quot;&#x27;
+            for post in subreddit.search(query, sort=&#x27;new&#x27;, time_filter=&#x27;all&#x27;, limit=None):
+                title = post.title
+                content = post.selftext
+                date = datetime.utcfromtimestamp(post.created_utc).strftime(&#x27;%Y-%m-%d&#x27;)
+                records.append({
+                    &#x27;title&#x27;:     title,
+                    &#x27;content&#x27;:   content,
+                    &#x27;author&#x27;:    str(post.author),
+                    &#x27;subreddit&#x27;: sub,
+                    &#x27;date&#x27;:      date,
+                    &#x27;url&#x27;:       post.url,
+                    &#x27;phrase&#x27;:    phrase
+                })
+                time.sleep(1)  # pause to prevent rate‐limit
+
+    out_path = r&quot;C:\Users\ceofl\Desktop\healing_business_posts.csv&quot;
+    with open(out_path, &#x27;w&#x27;, newline=&#x27;&#x27;, encoding=&#x27;utf-8&#x27;) as f:
+        writer = csv.DictWriter(f, fieldnames=[
+            &#x27;title&#x27;, &#x27;content&#x27;, &#x27;author&#x27;, &#x27;subreddit&#x27;, &#x27;date&#x27;, &#x27;url&#x27;, &#x27;phrase&#x27;
+        ])
+        writer.writeheader()
+        writer.writerows(records)
+
+    print(f&quot;saved {len(records)} posts to {out_path}&quot;)
+
+if __name__ == &#x27;__main__&#x27;:
+    main()
+</code></pre></main></body></html>

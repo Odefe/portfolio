@@ -1,0 +1,115 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>reddit | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>reddit</h1><a class="button button-primary" href="reddit-weak-moderated-subreddits-reddit.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import praw
+import pandas as pd
+import time
+from datetime import datetime
+from openpyxl import Workbook
+
+# Set up Reddit API credentials
+reddit = praw.Reddit(
+    client_id=&quot;YOUR_REDDIT_CREDENTIAL&quot;,
+    client_secret=&quot;YOUR_REDDIT_CREDENTIAL&quot;,
+    user_agent=&quot;gg&quot;
+)
+
+# File path for the new Excel file
+file_path = r&quot;C:\Users\ceofl\Desktop\reddit_analysis_test.xlsx&quot;
+
+# Define categories and topics
+categories = {
+    &quot;Entertainment/Sports&quot;: [&quot;Sports&quot;, &quot;Movies&quot;, &quot;Music&quot;, &quot;TV&quot;, &quot;Gaming&quot;],
+    &quot;Hobbies/Occupations&quot;: [&quot;Arts&quot;, &quot;Writing&quot;, &quot;Automotive&quot;, &quot;Outdoors&quot;, &quot;Photography&quot;],
+    &quot;Exercise/Health&quot;: [&quot;Mental&quot;, &quot;Physical&quot;, &quot;Diet&quot;, &quot;Exercise&quot;, &quot;Health&quot;],
+    &quot;Technology&quot;: [&quot;Coding&quot;, &quot;Tech Support&quot;, &quot;PC Building&quot;, &quot;Tools&quot;],
+    &quot;Animals&quot;: [&quot;Cats&quot;, &quot;Dogs&quot;, &quot;Birds&quot;, &quot;Pets&quot;, &quot;Wildlife&quot;],
+    &quot;Fashion/Beauty&quot;: [&quot;Fashion&quot;, &quot;Beauty&quot;, &quot;Hair&quot;, &quot;Tattoos&quot;, &quot;Shoes&quot;]
+}
+
+# Function to get date of the most recent post in a subreddit
+def get_most_recent_post(subreddit_name):
+    try:
+        subreddit = reddit.subreddit(subreddit_name)
+        recent_post = next(subreddit.new(limit=1))
+        recent_date = datetime.fromtimestamp(recent_post.created_utc).strftime(&#x27;%Y-%m-%d&#x27;)
+        return recent_date
+    except Exception as e:
+        print(f&quot;Could not fetch most recent post for {subreddit_name}: {e}&quot;)
+        return None
+
+# Step 1: Fetch subreddits for each category and create initial &quot;Subreddits less than 7000 subs&quot; sheet
+def create_subreddit_data():
+    data = []
+    for category, topics in categories.items():
+        for topic in topics:
+            search_results = reddit.subreddits.search(topic, limit=5)  # Limit to 5 for testing
+            for subreddit in search_results:
+                if subreddit.subscribers &lt; 7000:
+                    data.append({
+                        &quot;Category&quot;: category,
+                        &quot;Topic&quot;: topic,
+                        &quot;Subreddit Name&quot;: subreddit.display_name,
+                        &quot;Description&quot;: subreddit.public_description,
+                        &quot;Subscriber Count&quot;: subreddit.subscribers,
+                        &quot;Creation Date&quot;: datetime.fromtimestamp(subreddit.created_utc).strftime(&#x27;%Y-%m-%d&#x27;),
+                        &quot;Link&quot;: f&quot;https://www.reddit.com/r/{subreddit.display_name}&quot;
+                    })
+    return pd.DataFrame(data).head(5)  # Ensure only 5 rows
+
+# Step 2: Create &quot;AvailableSubsSubreddit&quot; data (dummy data used for simplicity)
+def create_available_subs_data():
+    data = [
+        {&quot;Subreddit Name&quot;: &quot;SampleSub1&quot;, &quot;Subscriber Count&quot;: 1000, &quot;Moderators&quot;: &quot;None&quot;, &quot;Category&quot;: &quot;Uncategorized&quot;, &quot;Date Made Available&quot;: &quot;2024-11-01&quot;},
+        {&quot;Subreddit Name&quot;: &quot;SampleSub2&quot;, &quot;Subscriber Count&quot;: 500, &quot;Moderators&quot;: &quot;None&quot;, &quot;Category&quot;: &quot;Uncategorized&quot;, &quot;Date Made Available&quot;: &quot;2024-11-02&quot;},
+        {&quot;Subreddit Name&quot;: &quot;SampleSub3&quot;, &quot;Subscriber Count&quot;: 1500, &quot;Moderators&quot;: &quot;None&quot;, &quot;Category&quot;: &quot;Uncategorized&quot;, &quot;Date Made Available&quot;: &quot;2024-11-03&quot;},
+        {&quot;Subreddit Name&quot;: &quot;SampleSub4&quot;, &quot;Subscriber Count&quot;: 2500, &quot;Moderators&quot;: &quot;None&quot;, &quot;Category&quot;: &quot;Uncategorized&quot;, &quot;Date Made Available&quot;: &quot;2024-11-04&quot;},
+        {&quot;Subreddit Name&quot;: &quot;SampleSub5&quot;, &quot;Subscriber Count&quot;: 700, &quot;Moderators&quot;: &quot;None&quot;, &quot;Category&quot;: &quot;Uncategorized&quot;, &quot;Date Made Available&quot;: &quot;2024-11-05&quot;}
+    ]
+    return pd.DataFrame(data)
+
+# Step 3: Create &quot;RedditRequestsSubreddit&quot; data (dummy data used for simplicity)
+def create_reddit_requests_data():
+    data = [
+        {&quot;Subreddit Name&quot;: &quot;ExampleSub3&quot;, &quot;Request Date&quot;: &quot;2024-11-03&quot;, &quot;Requester Username&quot;: &quot;User1&quot;, &quot;Status&quot;: &quot;Inactive&quot;, &quot;Post Details&quot;: &quot;Request due to inactivity&quot;, &quot;Upvotes&quot;: 10},
+        {&quot;Subreddit Name&quot;: &quot;ExampleSub4&quot;, &quot;Request Date&quot;: &quot;2024-11-04&quot;, &quot;Requester Username&quot;: &quot;User2&quot;, &quot;Status&quot;: &quot;Inactive&quot;, &quot;Post Details&quot;: &quot;Request due to inactivity&quot;, &quot;Upvotes&quot;: 20},
+        {&quot;Subreddit Name&quot;: &quot;ExampleSub5&quot;, &quot;Request Date&quot;: &quot;2024-11-05&quot;, &quot;Requester Username&quot;: &quot;User3&quot;, &quot;Status&quot;: &quot;Inactive&quot;, &quot;Post Details&quot;: &quot;Request due to inactivity&quot;, &quot;Upvotes&quot;: 15},
+        {&quot;Subreddit Name&quot;: &quot;ExampleSub6&quot;, &quot;Request Date&quot;: &quot;2024-11-06&quot;, &quot;Requester Username&quot;: &quot;User4&quot;, &quot;Status&quot;: &quot;Inactive&quot;, &quot;Post Details&quot;: &quot;Request due to inactivity&quot;, &quot;Upvotes&quot;: 25},
+        {&quot;Subreddit Name&quot;: &quot;ExampleSub7&quot;, &quot;Request Date&quot;: &quot;2024-11-07&quot;, &quot;Requester Username&quot;: &quot;User5&quot;, &quot;Status&quot;: &quot;Inactive&quot;, &quot;Post Details&quot;: &quot;Request due to inactivity&quot;, &quot;Upvotes&quot;: 30}
+    ]
+    return pd.DataFrame(data)
+
+# Step 4: Cross-reference for &quot;High Likeliness of Weak Moderation&quot;
+def create_high_likeliness_data(subreddits_df, available_subs_df):
+    merged_df = subreddits_df[subreddits_df[&quot;Subreddit Name&quot;].isin(available_subs_df[&quot;Subreddit Name&quot;])]
+    merged_df[&quot;In r/AvailableSubs&quot;] = &quot;Yes&quot;
+    merged_df[&quot;High Likeliness of Weak Moderation&quot;] = &quot;High Likeliness of Weak Moderation&quot;
+    return merged_df.head(5)  # Ensure only 5 rows
+
+# Step 5: Add &quot;Date of Most Recent Post&quot; to each sheet
+def add_most_recent_post(df, subreddit_column):
+    df[&quot;Date of Most Recent Post&quot;] = df[subreddit_column].apply(lambda x: get_most_recent_post(x))
+    return df
+
+# Create the workbook and sheets
+with pd.ExcelWriter(file_path, engine=&quot;openpyxl&quot;) as writer:
+    # Step 1: Create &quot;Subreddits less than 7000 subs&quot; sheet with initial data
+    subreddits_df = create_subreddit_data()
+    subreddits_df = add_most_recent_post(subreddits_df, &quot;Subreddit Name&quot;)  # Limit to 5 rows
+    subreddits_df.to_excel(writer, sheet_name=&quot;Subreddits less than 7000 subs&quot;, index=False)
+
+    # Step 2: Create &quot;AvailableSubsSubreddit&quot; sheet with dummy data
+    available_subs_df = create_available_subs_data().head(5)
+    available_subs_df = add_most_recent_post(available_subs_df, &quot;Subreddit Name&quot;)
+    available_subs_df.to_excel(writer, sheet_name=&quot;AvailableSubsSubreddit&quot;, index=False)
+
+    # Step 3: Create &quot;RedditRequestsSubreddit&quot; sheet with dummy data
+    reddit_requests_df = create_reddit_requests_data().head(5)
+    reddit_requests_df = add_most_recent_post(reddit_requests_df, &quot;Subreddit Name&quot;)
+    reddit_requests_df.to_excel(writer, sheet_name=&quot;RedditRequestsSubreddit&quot;, index=False)
+
+    # Step 4: Create &quot;less than 7000 subs and in AS&quot; with cross-referenced data
+    high_likeliness_df = create_high_likeliness_data(subreddits_df, available_subs_df)
+    high_likeliness_df = add_most_recent_post(high_likeliness_df, &quot;Subreddit Name&quot;)
+    high_likeliness_df.to_excel(writer, sheet_name=&quot;less than 7000 subs and in AS&quot;, index=False)
+
+print(f&quot;Test file created at {file_path} with first 5 rows of each sheet populated.&quot;)
+
+</code></pre></main></body></html>

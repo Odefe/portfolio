@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Divorce Reddit Data | Work Library</title><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../expansion.css"></head><body><main class="container report-preview"><a class="back-link" href="../../../project.html?id=work-library">&larr; Work library</a><h1>Divorce Reddit Data</h1><a class="button button-primary" href="reddit-divorce-reddit-analysis-divorce-reddit-data.py" download>Download original format</a><p>Source-code preview. API credentials in the portfolio copy have been replaced with placeholders.</p><pre><code>import requests
+import pandas as pd
+
+client_id = &quot;YOUR_REDDIT_CREDENTIAL&quot;
+client_secret = &quot;YOUR_REDDIT_CREDENTIAL&quot;
+user_agent = &quot;gg&quot;
+
+auth = requests.auth.HTTPBasicAuth(client_id, client_secret)
+data = {&quot;grant_type&quot;: &quot;client_credentials&quot;}
+headers = {&quot;User-Agent&quot;: user_agent}
+token = requests.post(&quot;https://www.reddit.com/api/v1/access_token&quot;, auth=auth, data=data, headers=headers).json()[&quot;access_token&quot;]
+headers[&quot;Authorization&quot;] = f&quot;bearer {token}&quot;
+
+subreddits = [&quot;AskReddit&quot;, &quot;todayilearned&quot;, &quot;technology&quot;, &quot;worldnews&quot;]
+limit = 100
+writer = pd.ExcelWriter(r&quot;C:\Users\User\Desktop\reddit_posts.xlsx&quot;, engine=&quot;openpyxl&quot;)
+
+for sub in subreddits:
+    url = f&quot;https://oauth.reddit.com/r/{sub}/new?limit={limit}&quot;
+    items = requests.get(url, headers=headers).json()[&quot;data&quot;][&quot;children&quot;]
+    records = [item[&quot;data&quot;] for item in items]
+    pd.json_normalize(records).to_excel(writer, sheet_name=sub, index=False)
+
+writer.close()
+</code></pre></main></body></html>
